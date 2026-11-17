@@ -150,7 +150,7 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative bg-[#FFF5E9]">
-        <div className="mx-auto grid min-h-[590px] max-w-7xl items-center gap-10 px-5 py-16 lg:grid-cols-2 lg:px-8">
+        <div className="mx-auto grid min-h-147.5 max-w-7xl items-center gap-10 px-5 py-16 lg:grid-cols-2 lg:px-8">
           <motion.div
             initial={{ opacity: 0, x: -35 }}
             animate={{ opacity: 1, x: 0 }}
@@ -204,7 +204,7 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
-            className="relative mx-auto w-full max-w-[550px]"
+            className="relative mx-auto w-full max-w-137.5"
           >
             <div className="absolute inset-8 rounded-full bg-orange-300/40 blur-3xl" />
 
@@ -215,7 +215,7 @@ export default function Home() {
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="rounded-full border-[12px] border-white object-cover shadow-2xl"
+                className="rounded-full border-12 border-white object-cover shadow-2xl"
               />
             </div>
 
@@ -323,7 +323,7 @@ export default function Home() {
                 transition={{ delay: index * 0.12 }}
                 className="overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-2 hover:shadow-xl"
               >
-                <div className="relative aspect-[4/3]">
+                <div className="relative aspect-4/3">
                   <Image
                     src={pizza.image}
                     alt={pizza.name}
