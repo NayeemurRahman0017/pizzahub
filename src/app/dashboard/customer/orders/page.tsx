@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import DashboardShell from "@/components/dashboard/dashboard-shell";
 
 type OrderStatus = "Pending" | "Accepted" | "Rejected" | "Cancelled";
 
