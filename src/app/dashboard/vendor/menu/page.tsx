@@ -150,14 +150,13 @@ export default function MyMenuItemsPage() {
 
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <button
-                          disabled
-                          title="Edit will be connected later"
-                          className="rounded-lg bg-blue-50 p-2 text-blue-600 opacity-50"
-                        >
-                          <Pencil size={17} />
-                        </button>
-
+                        <Link
+  href={`/dashboard/vendor/menu/${item.id}/edit`}
+  title="Edit item"
+  className="rounded-lg bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
+>
+  <Pencil size={17} />
+</Link>
                         <button
                           onClick={() => deleteItem(item.id)}
                           title="Delete item"

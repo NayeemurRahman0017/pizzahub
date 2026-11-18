@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 
 type OrderStatus = "Pending" | "Accepted" | "Rejected" | "Cancelled";
@@ -130,14 +131,23 @@ export default function CustomerOrdersPage() {
                   </p>
                 </div>
 
-                {order.status === "Pending" && (
-                  <button
-                    onClick={() => cancelOrder(order.id)}
-                    className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
-                  >
-                    Cancel Order
-                  </button>
-                )}
+                <div className="mt-4 flex flex-wrap gap-3">
+  <Link
+    href={`/dashboard/customer/orders/${order.id}`}
+    className="rounded-lg bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-600 transition hover:bg-orange-100"
+  >
+    View Details
+  </Link>
+
+  {order.status === "Pending" && (
+    <button
+      onClick={() => cancelOrder(order.id)}
+      className="rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+    >
+      Cancel Order
+    </button>
+  )}
+</div>
               </div>
             </div>
           ))}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { ImagePlus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function AddMenuItemPage() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function AddMenuItemPage() {
     e.preventDefault();
 
     if (!image) {
-      alert("Please select an item image.");
+      toast.error("Please select an item image.");
       return;
     }
 

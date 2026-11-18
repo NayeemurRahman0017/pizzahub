@@ -1,4 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## PizzaHub
+
+PizzaHub is a frontend-only Pizza marketplace UI built with Next.js App Router,
+TypeScript, Tailwind CSS, ShadCN-style components, Motion, and Lucide icons.
+
+### Challenge Implementation
+
+- **Advanced search and sorting:** the Browse Menu supports text search, category
+  and location filters, plus ascending and descending price sorting. Filters are
+  applied with URL-independent client state and can later map directly to API
+  query parameters such as `search`, `category`, `location`, `sort=priceAsc`,
+  and `sort=priceDesc`.
+- **JWT/API middleware:** the frontend defines role-oriented route layouts for
+  customer, vendor, and admin dashboards. For the full implementation, Express
+  middleware will verify the Bearer JWT signature and expiration, extract the
+  user role, reject missing/invalid tokens with `401`, reject wrong-role access
+  with `403`, and verify resource ownership before menu, order, or profile
+  mutations.
+- **Backend and authentication:** Better Auth, MongoDB, Stripe webhooks, JWT
+  verification, and ImgBB uploads are intentionally not implemented in this
+  frontend-only assignment version.
+
+### Optional Features
+
+- Dark/light mode toggle
+- Customer order status timeline
 
 ## Getting Started
 

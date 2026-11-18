@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import "./globals.css";
+import Navbar from "@/components/layout/navbar";
+import Footer from "@/components/layout/footer";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,13 +26,30 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="min-h-screen flex flex-col antialiased">
-        {children}
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+    >
+      <body className="flex min-h-screen flex-col antialiased">
+        <Navbar />
+        <Toaster richColors position="top-right" />
+
+        <main className="flex-1">{children}</main>
+
+        <Suspense
+          fallback={
+            <footer
+              aria-hidden="true"
+              className="min-h-105 bg-[#211916]"
+            />
+          }
+        >
+          <Footer />
+        </Suspense>
       </body>
     </html>
   );
