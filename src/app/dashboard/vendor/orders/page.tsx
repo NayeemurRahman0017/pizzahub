@@ -57,6 +57,7 @@ const initialOrders: Order[] = [
 export default function VendorOrdersPage() {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
 
+  // Update Order Status
   const updateStatus = (id: number, status: OrderStatus) => {
     setOrders((currentOrders) =>
       currentOrders.map((order) =>
@@ -67,48 +68,77 @@ export default function VendorOrdersPage() {
     );
   };
 
+  // Calculate Order Statistics
   const pendingCount = orders.filter(
     (order) => order.status === "Pending"
+  ).length;
+
+  const acceptedCount = orders.filter(
+    (order) => order.status === "Accepted"
+  ).length;
+
+  const rejectedCount = orders.filter(
+    (order) => order.status === "Rejected"
   ).length;
 
   return (
     <DashboardShell role="vendor">
       <div className="space-y-6">
+        {/* Page Heading */}
         <div>
           <p className="text-sm font-medium text-orange-600">
             Vendor Dashboard
           </p>
+
           <h1 className="mt-1 text-2xl font-bold text-gray-900">
             Customer Orders
           </h1>
+
           <p className="mt-2 text-sm text-gray-500">
             View customer orders and manage their status.
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        {/* Order Statistics */}
+        <div className="grid gap-4 sm:grid-cols-4">
+          {/* Total Orders */}
           <div className="rounded-xl border bg-white p-5">
             <p className="text-sm text-gray-500">Total Orders</p>
+
             <h2 className="mt-2 text-3xl font-bold text-gray-900">
               {orders.length}
             </h2>
           </div>
 
+          {/* Pending Orders */}
           <div className="rounded-xl border bg-white p-5">
             <p className="text-sm text-gray-500">Pending Orders</p>
+
             <h2 className="mt-2 text-3xl font-bold text-orange-600">
               {pendingCount}
             </h2>
           </div>
 
+          {/* Accepted Orders */}
           <div className="rounded-xl border bg-white p-5">
             <p className="text-sm text-gray-500">Accepted Orders</p>
+
             <h2 className="mt-2 text-3xl font-bold text-green-600">
-              {orders.filter((order) => order.status === "Accepted").length}
+              {acceptedCount}
+            </h2>
+          </div>
+
+          {/* Rejected Orders */}
+          <div className="rounded-xl border bg-white p-5">
+            <p className="text-sm text-gray-500">Rejected Orders</p>
+
+            <h2 className="mt-2 text-3xl font-bold text-red-600">
+              {rejectedCount}
             </h2>
           </div>
         </div>
 
+        {/* Orders List */}
         <div className="space-y-4">
           {orders.map((order) => (
             <div
@@ -120,11 +150,13 @@ export default function VendorOrdersPage() {
                   <p className="text-sm text-gray-500">
                     Order #{order.id}
                   </p>
+
                   <h2 className="mt-1 text-lg font-bold text-gray-900">
                     {order.item}
                   </h2>
                 </div>
 
+                {/* Order Status */}
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
                     order.status === "Pending"
@@ -138,58 +170,82 @@ export default function VendorOrdersPage() {
                 </span>
               </div>
 
+              {/* Order Details */}
               <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+                {/* Customer Information */}
                 <div>
                   <p className="font-semibold text-gray-800">
                     Customer Information
                   </p>
-                  <p className="mt-2 text-gray-600">{order.customer}</p>
-                  <p className="text-gray-500">{order.email}</p>
+
+                  <p className="mt-2 text-gray-600">
+                    {order.customer}
+                  </p>
+
+                  <p className="text-gray-500">
+                    {order.email}
+                  </p>
                 </div>
 
+                {/* Order Information */}
                 <div>
                   <p className="font-semibold text-gray-800">
                     Order Information
                   </p>
+
                   <p className="mt-2 text-gray-600">
                     Quantity: {order.quantity}
                   </p>
+
                   <p className="text-gray-600">
                     <CalendarDays className="mr-1 inline h-4 w-4" />
                     {order.date}
                   </p>
                 </div>
 
+                {/* Delivery Address */}
                 <div>
                   <p className="font-semibold text-gray-800">
                     Delivery Address
                   </p>
+
                   <p className="mt-2 text-gray-600">
                     <MapPin className="mr-1 inline h-4 w-4" />
                     {order.address}
                   </p>
                 </div>
 
+                {/* Customer Message */}
                 <div>
                   <p className="font-semibold text-gray-800">
                     Customer Message
                   </p>
-                  <p className="mt-2 text-gray-600">{order.message}</p>
+
+                  <p className="mt-2 text-gray-600">
+                    {order.message}
+                  </p>
                 </div>
               </div>
 
+              {/* Order Actions */}
               {order.status === "Pending" && (
                 <div className="mt-5 flex flex-wrap gap-3 border-t pt-4">
+                  {/* Accept Order */}
                   <button
-                    onClick={() => updateStatus(order.id, "Accepted")}
+                    onClick={() =>
+                      updateStatus(order.id, "Accepted")
+                    }
                     className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
                   >
                     <Check size={16} />
                     Accept Order
                   </button>
 
+                  {/* Reject Order */}
                   <button
-                    onClick={() => updateStatus(order.id, "Rejected")}
+                    onClick={() =>
+                      updateStatus(order.id, "Rejected")
+                    }
                     className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
                   >
                     <X size={16} />
@@ -198,6 +254,7 @@ export default function VendorOrdersPage() {
                 </div>
               )}
 
+              {/* Processed Order Message */}
               {order.status !== "Pending" && (
                 <div className="mt-5 flex items-center gap-2 border-t pt-4 text-sm text-gray-500">
                   <Clock size={16} />

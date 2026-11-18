@@ -48,8 +48,6 @@ export default function VendorDashboard() {
   return (
     <DashboardShell
       role="vendor"
-      userName="Vendor User"
-      userEmail="vendor@example.com"
     >
       <div className="space-y-8">
         <div>

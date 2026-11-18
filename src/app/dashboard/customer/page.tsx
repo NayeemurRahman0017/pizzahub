@@ -1,5 +1,6 @@
 "use client";
-
+import Link from "next/link";
+import SimpleBarChart from "@/components/dashboard/simple-bar-chart";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import {
   ShoppingBag,
@@ -77,6 +78,15 @@ export default function CustomerDashboardPage() {
             );
           })}
         </div>
+        <SimpleBarChart
+  title="Orders by Status"
+  data={[
+    { label: "Pending", value: 3 },
+    { label: "Accepted", value: 7 },
+    { label: "Rejected", value: 2 },
+    { label: "Cancelled", value: 0 },
+  ]}
+/>
 
         <div className="rounded-xl border bg-white p-6">
           <h2 className="text-lg font-bold text-gray-900">
@@ -95,13 +105,12 @@ export default function CustomerDashboardPage() {
             <p className="mt-1 text-sm text-orange-700">
               Explore our menu and discover your favorite pizza.
             </p>
-
-            <a
+            <Link
               href="/menu"
               className="mt-4 inline-block rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600"
             >
               Browse Menu
-            </a>
+            </Link>
           </div>
         </div>
       </div>

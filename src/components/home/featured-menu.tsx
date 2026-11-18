@@ -3,71 +3,9 @@
 import Link from "next/link";
 import { MapPin, Utensils, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
+import { getFeaturedItems } from "@/lib/menu-data";
 
-// Temporary demo data.
-// Backend integration হলে database থেকে approved এবং active items আসবে।
-const featuredItems = [
-  {
-    id: "demo-1",
-    name: "Margherita Classic",
-    category: "Classic Pizzas",
-    price: 450,
-    location: "Dhanmondi, Dhaka",
-    vendor: "Pizza Corner",
-    image:
-      "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800",
-  },
-  {
-    id: "demo-2",
-    name: "Pepperoni Feast",
-    category: "Meat Lovers",
-    price: 650,
-    location: "Gulshan, Dhaka",
-    vendor: "Italian Pizza House",
-    image:
-      "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=800",
-  },
-  {
-    id: "demo-3",
-    name: "Veggie Supreme",
-    category: "Vegetarian Pizzas",
-    price: 520,
-    location: "Banani, Dhaka",
-    vendor: "Green Oven",
-    image:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
-  },
-  {
-    id: "demo-4",
-    name: "Four Cheese Pizza",
-    category: "Specialty / Gourmet Pizzas",
-    price: 750,
-    location: "Uttara, Dhaka",
-    vendor: "Cheese Factory",
-    image:
-      "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=800",
-  },
-  {
-    id: "demo-5",
-    name: "Crispy Garlic Bread",
-    category: "Sides & Appetizers",
-    price: 220,
-    location: "Mirpur, Dhaka",
-    vendor: "Pizza Corner",
-    image:
-      "https://images.unsplash.com/photo-1619531040576-f9416740661b?w=800",
-  },
-  {
-    id: "demo-6",
-    name: "Chocolate Dessert",
-    category: "Beverages & Desserts",
-    price: 280,
-    location: "Dhanmondi, Dhaka",
-    vendor: "Sweet Oven",
-    image:
-      "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800",
-  },
-];
+const featuredItems = getFeaturedItems().map((i) => ({ ...i, image: i.images[0] }));
 
 export default function FeaturedMenu() {
   return (

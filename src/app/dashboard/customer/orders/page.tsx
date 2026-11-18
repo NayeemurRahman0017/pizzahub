@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { cancelStoredOrder, loadOrders } from "@/lib/orders-store";
+
 import Image from "next/image";
 import Link from "next/link";
+
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 
 type OrderStatus = "Pending" | "Accepted" | "Rejected" | "Cancelled";
@@ -22,7 +25,8 @@ const initialOrders: Order[] = [
   {
     id: 1,
     itemName: "Margherita Pizza",
-    image: "https://images.unsplash.com/photo-1579751626657-72bc17010498?w=500",
+    image:
+      "https://images.unsplash.com/photo-1579751626657-72bc17010498?w=500",
     vendor: "Pizza Palace",
     deliveryDate: "2026-11-20",
     deliveryAddress: "Dhanmondi, Dhaka",
@@ -32,7 +36,8 @@ const initialOrders: Order[] = [
   {
     id: 2,
     itemName: "Pepperoni Pizza",
-    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=500",
+    image:
+      "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=500",
     vendor: "Italian Pizza House",
     deliveryDate: "2026-11-19",
     deliveryAddress: "Uttara, Dhaka",
@@ -42,7 +47,8 @@ const initialOrders: Order[] = [
   {
     id: 3,
     itemName: "BBQ Chicken Pizza",
-    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500",
+    image:
+      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500",
     vendor: "Food Corner",
     deliveryDate: "2026-11-21",
     deliveryAddress: "Mirpur, Dhaka",
@@ -52,14 +58,27 @@ const initialOrders: Order[] = [
 ];
 
 export default function CustomerOrdersPage() {
-  const [orders, setOrders] = useState(initialOrders);
+  // Orders state
+  const [orders, setOrders] = useState<Order[]>(initialOrders);
 
+  // Load orders placed through the order form
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setOrders([...(loadOrders() as Order[]), ...initialOrders]);
+    }, 0);
+
+    return () => window.clearTimeout(t);
+  }, []);
+
+  // Cancel pending order
   const cancelOrder = (id: number) => {
-    setOrders((previousOrders) =>
-      previousOrders.map((order) =>
-        order.id === id && order.status === "Pending"
-          ? { ...order, status: "Cancelled" }
-          : order
+    cancelStoredOrder(id);
+
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === id && o.status === "Pending"
+          ? { ...o, status: "Cancelled" }
+          : o
       )
     );
   };
@@ -67,19 +86,25 @@ export default function CustomerOrdersPage() {
   return (
     <DashboardShell role="customer">
       <div className="space-y-6">
+        {/* Page Heading */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            My Orders
+          </h1>
+
           <p className="mt-2 text-gray-500">
             View and manage your pizza orders.
           </p>
         </div>
 
+        {/* Orders List */}
         <div className="grid gap-5">
           {orders.map((order) => (
             <div
               key={order.id}
               className="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm md:flex-row"
             >
+              {/* Pizza Image */}
               <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-xl md:w-48">
                 <Image
                   src={order.image}
@@ -90,17 +115,20 @@ export default function CustomerOrdersPage() {
                 />
               </div>
 
+              {/* Order Information */}
               <div className="flex-1">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">
                       {order.itemName}
                     </h2>
+
                     <p className="mt-1 text-sm text-gray-500">
                       Vendor: {order.vendor}
                     </p>
                   </div>
 
+                  {/* Order Status */}
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
                       order.status === "Accepted"
@@ -116,42 +144,54 @@ export default function CustomerOrdersPage() {
                   </span>
                 </div>
 
+                {/* Order Details */}
                 <div className="mt-4 grid gap-2 text-sm text-gray-600 sm:grid-cols-2">
                   <p>
-                    <span className="font-semibold">Delivery Date:</span>{" "}
+                    <span className="font-semibold">
+                      Delivery Date:
+                    </span>{" "}
                     {order.deliveryDate}
                   </p>
+
                   <p>
-                    <span className="font-semibold">Request Date:</span>{" "}
+                    <span className="font-semibold">
+                      Request Date:
+                    </span>{" "}
                     {order.requestDate}
                   </p>
+
                   <p className="sm:col-span-2">
-                    <span className="font-semibold">Delivery Address:</span>{" "}
+                    <span className="font-semibold">
+                      Delivery Address:
+                    </span>{" "}
                     {order.deliveryAddress}
                   </p>
                 </div>
 
+                {/* Action Buttons */}
                 <div className="mt-4 flex flex-wrap gap-3">
-  <Link
-    href={`/dashboard/customer/orders/${order.id}`}
-    className="rounded-lg bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-600 transition hover:bg-orange-100"
-  >
-    View Details
-  </Link>
+                  <Link
+                    href={`/dashboard/customer/orders/${order.id}`}
+                    className="rounded-lg bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-600 transition hover:bg-orange-100"
+                  >
+                    View Details
+                  </Link>
 
-  {order.status === "Pending" && (
-    <button
-      onClick={() => cancelOrder(order.id)}
-      className="rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
-    >
-      Cancel Order
-    </button>
-  )}
-</div>
+                  {order.status === "Pending" && (
+                    <button
+                      type="button"
+                      onClick={() => cancelOrder(order.id)}
+                      className="rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
 
+          {/* Empty Orders Message */}
           {orders.length === 0 && (
             <div className="rounded-2xl bg-white p-10 text-center text-gray-500">
               You have no orders yet.

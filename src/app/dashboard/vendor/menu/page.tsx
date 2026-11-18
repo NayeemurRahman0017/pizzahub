@@ -57,8 +57,6 @@ export default function MyMenuItemsPage() {
   return (
     <DashboardShell
       role="vendor"
-      userName="Vendor User"
-      userEmail="vendor@example.com"
     >
       <div className="space-y-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">

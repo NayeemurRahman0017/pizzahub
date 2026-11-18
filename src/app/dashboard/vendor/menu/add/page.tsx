@@ -2,14 +2,32 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { ImagePlus, ArrowLeft } from "lucide-react";
+
 import Link from "next/link";
 import { toast } from "sonner";
+
+import { uploadToImgBB } from "@/lib/imgbb";
+import { useSession } from "@/lib/auth-client";
 
 export default function AddMenuItemPage() {
   const router = useRouter();
 
+  // Get logged-in user session
+  const { data: session } = useSession();
+
+  // Saving state
+  const [saving, setSaving] = useState(false);
+
+  // Free plan item limit
+  const activeCount = 3; // TODO: replace with the vendor's real active item count from the API
+
+  const limitReached =
+    session?.user.subscriptionPlan !== "premium" && activeCount >= 3;
+
+  // Form data
   const [formData, setFormData] = useState({
     itemName: "",
     category: "",
@@ -18,35 +36,65 @@ export default function AddMenuItemPage() {
     location: "",
   });
 
+  // Selected image
   const [image, setImage] = useState<File | null>(null);
 
+  // Handle input changes
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!image) {
-      toast.error("Please select an item image.");
-      return;
+    if (limitReached) {
+      return toast.error(
+        "Free plan allows only 3 active items. Upgrade to Premium."
+      );
     }
 
-    console.log({ ...formData, image });
+    if (!image) {
+      return toast.error("Please select an item image.");
+    }
 
-    // Backend and ImgBB integration will be added later.
-    router.push("/dashboard/vendor/menu");
+    setSaving(true);
+
+    try {
+      // Upload image to ImgBB
+      const imageUrl = await uploadToImgBB(image);
+
+      // TODO: POST { ...formData, images: [imageUrl] } to the backend (status defaults to "pending")
+      console.log({
+        ...formData,
+        images: [imageUrl],
+      });
+
+      toast.success(
+        "Menu item submitted. It will appear after admin approval."
+      );
+
+      router.push("/dashboard/vendor/menu");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Image upload failed."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <DashboardShell
-      role="vendor"
-      userName="Vendor User"
-      userEmail="vendor@example.com"
-    >
+    <DashboardShell role="vendor">
       <div className="mx-auto max-w-3xl space-y-6">
+        {/* Page Heading */}
         <div>
           <Link
             href="/dashboard/vendor/menu"
@@ -65,14 +113,30 @@ export default function AddMenuItemPage() {
           </p>
         </div>
 
+        {/* Free Plan Limit Warning */}
+        {limitReached && (
+          <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+            Free plan limit reached (3 active items).{" "}
+            <Link
+              href="/dashboard/vendor/subscription"
+              className="font-semibold underline"
+            >
+              Upgrade to Premium
+            </Link>
+          </div>
+        )}
+
+        {/* Add Menu Item Form */}
         <form
           onSubmit={handleSubmit}
           className="space-y-6 rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
         >
+          {/* Item Name */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Item Name
             </label>
+
             <input
               type="text"
               name="itemName"
@@ -84,10 +148,12 @@ export default function AddMenuItemPage() {
             />
           </div>
 
+          {/* Category */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Category
             </label>
+
             <select
               name="category"
               value={formData.category}
@@ -102,17 +168,21 @@ export default function AddMenuItemPage() {
               <option value="Specialty / Gourmet Pizzas">
                 Specialty / Gourmet Pizzas
               </option>
-              <option value="Sides & Appetizers">Sides & Appetizers</option>
+              <option value="Sides & Appetizers">
+                Sides & Appetizers
+              </option>
               <option value="Beverages & Desserts">
                 Beverages & Desserts
               </option>
             </select>
           </div>
 
+          {/* Description */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Description
             </label>
+
             <textarea
               name="description"
               value={formData.description}
@@ -124,11 +194,14 @@ export default function AddMenuItemPage() {
             />
           </div>
 
+          {/* Price and Location */}
           <div className="grid gap-5 sm:grid-cols-2">
+            {/* Price */}
             <div>
               <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Price (৳)
               </label>
+
               <input
                 type="number"
                 name="price"
@@ -141,10 +214,12 @@ export default function AddMenuItemPage() {
               />
             </div>
 
+            {/* Location */}
             <div>
               <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Location
               </label>
+
               <input
                 type="text"
                 name="location"
@@ -157,6 +232,7 @@ export default function AddMenuItemPage() {
             </div>
           </div>
 
+          {/* Item Image */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Item Image
@@ -178,21 +254,26 @@ export default function AddMenuItemPage() {
                 accept="image/*"
                 required
                 className="hidden"
-                onChange={(e) => setImage(e.target.files?.[0] || null)}
+                onChange={(e) =>
+                  setImage(e.target.files?.[0] || null)
+                }
               />
             </label>
           </div>
 
+          {/* Approval Notice */}
           <div className="rounded-xl bg-yellow-50 p-4 text-sm text-yellow-800">
             New menu items will have Pending status until an admin approves
             them.
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full rounded-xl bg-orange-500 py-3 font-semibold text-white transition hover:bg-orange-600"
+            disabled={saving || limitReached}
+            className="w-full rounded-xl bg-orange-500 py-3 font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Add Menu Item
+            {saving ? "Saving..." : "Add Menu Item"}
           </button>
         </form>
       </div>

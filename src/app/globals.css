@@ -68,18 +68,25 @@
 .dark {
   --background: oklch(0.18 0.015 35);
   --foreground: oklch(0.97 0.01 75);
+
   --card: oklch(0.23 0.015 35);
   --card-foreground: oklch(0.97 0.01 75);
+
   --popover: oklch(0.23 0.015 35);
   --popover-foreground: oklch(0.97 0.01 75);
+
   --primary: oklch(0.68 0.19 27);
   --primary-foreground: oklch(1 0 0);
+
   --secondary: oklch(0.32 0.04 45);
   --secondary-foreground: oklch(0.97 0.01 75);
+
   --muted: oklch(0.28 0.015 35);
   --muted-foreground: oklch(0.72 0.02 60);
+
   --accent: oklch(0.35 0.06 45);
   --accent-foreground: oklch(0.97 0.01 75);
+
   --destructive: oklch(0.65 0.20 25);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
@@ -98,4 +105,51 @@
   body {
     @apply min-h-screen bg-background text-foreground;
   }
+}
+
+/* Dark Mode Overrides */
+.dark body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dark .bg-white,
+.dark .bg-white\/95 {
+  background-color: var(--card);
+}
+
+.dark .bg-orange-50,
+.dark .bg-orange-100,
+.dark .bg-\[\#fff0e7\],
+.dark .bg-\[\#fffaf5\] {
+  background-color: var(--muted);
+}
+
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-\[\#2c211c\],
+.dark .text-\[\#29201D\] {
+  color: var(--foreground);
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-gray-400,
+.dark .text-\[\#786d66\] {
+  color: var(--muted-foreground);
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .border-orange-100,
+.dark .border-orange-200 {
+  border-color: var(--border);
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  color: var(--foreground);
 }

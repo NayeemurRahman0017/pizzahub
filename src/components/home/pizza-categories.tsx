@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import Link from "next/link"
 
 const categories = [
   {
@@ -65,15 +66,13 @@ export default function PizzaCategories() {
                 delay: index * 0.08,
               }}
             >
-              <div className="flex min-h-36 flex-col items-center justify-center rounded-2xl border border-orange-100 bg-white p-5 text-center shadow-sm transition hover:-translate-y-1 hover:border-[#e94b35] hover:shadow-lg">
-                <span className="text-4xl" aria-hidden="true">
-                  {category.icon}
-                </span>
-
-                <h3 className="mt-4 text-sm font-bold text-[#2c211c] sm:text-base">
-                  {category.name}
-                </h3>
-              </div>
+              <Link
+  href={`/menu?category=${encodeURIComponent(category.name)}`}
+  className="flex min-h-36 flex-col items-center justify-center rounded-2xl border border-orange-100 bg-white p-5 text-center shadow-sm transition hover:-translate-y-1 hover:border-[#e94b35] hover:shadow-lg"
+>
+  <span className="text-4xl" aria-hidden="true">{category.icon}</span>
+  <h3 className="mt-4 text-sm font-bold text-[#2c211c] sm:text-base">{category.name}</h3>
+</Link>
             </motion.div>
           ))}
         </div>

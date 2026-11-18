@@ -3,9 +3,46 @@
 import { useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { Check, Crown, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 
 export default function VendorSubscriptionPage() {
-  const [message, setMessage] = useState("");
+  const { data: session } = useSession();
+  const [loading, setLoading] = useState(false);
+
+  const isPremium = session?.user.subscriptionPlan === "premium";
+
+  const handleUpgrade = async () => {
+    setLoading(true);
+
+    try {
+      // Backend authenticated session থেকে user identify করবে।
+      // Client থেকে vendorId পাঠানো হবে না।
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/subscriptions/checkout`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.url) {
+        throw new Error(data.message ?? "Could not start checkout.");
+      }
+
+      window.location.href = data.url;
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not start checkout."
+      );
+
+      setLoading(false);
+    }
+  };
 
   return (
     <DashboardShell role="vendor">
@@ -14,22 +51,30 @@ export default function VendorSubscriptionPage() {
           <p className="text-sm font-medium text-orange-600">
             Vendor Dashboard
           </p>
+
           <h1 className="mt-1 text-2xl font-bold text-gray-900">
             Subscription Plans
           </h1>
+
           <p className="mt-2 text-sm text-gray-500">
             Choose the right plan for your restaurant.
           </p>
         </div>
 
+        {/* Current Plan */}
         <div className="rounded-xl border border-orange-200 bg-orange-50 p-5">
           <div className="flex items-center gap-2">
             <Crown className="text-orange-600" size={22} />
-            <h2 className="font-bold text-gray-900">Current Plan: Free</h2>
+
+            <h2 className="font-bold text-gray-900">
+              Current Plan: {isPremium ? "Premium" : "Free"}
+            </h2>
           </div>
+
           <p className="mt-2 text-sm text-gray-600">
-            You are currently using the Free plan. Upgrade to Premium to
-            publish unlimited active menu items.
+            {isPremium
+              ? "You are currently using the Premium plan. Enjoy your premium benefits."
+              : "You are currently using the Free plan. Upgrade to Premium to publish unlimited active menu items."}
           </p>
         </div>
 
@@ -37,14 +82,20 @@ export default function VendorSubscriptionPage() {
           {/* Free Plan */}
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Free Plan</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                Free Plan
+              </h2>
+
               <p className="mt-2 text-sm text-gray-500">
                 Get started with the basic vendor features.
               </p>
             </div>
 
             <div className="my-6">
-              <span className="text-4xl font-bold text-gray-900">$0</span>
+              <span className="text-4xl font-bold text-gray-900">
+                ৳0
+              </span>
+
               <span className="text-gray-500"> / Free</span>
             </div>
 
@@ -56,17 +107,22 @@ export default function VendorSubscriptionPage() {
               ].map((feature) => (
                 <div key={feature} className="flex items-center gap-3">
                   <Check className="text-green-600" size={18} />
-                  <span className="text-sm text-gray-600">{feature}</span>
+
+                  <span className="text-sm text-gray-600">
+                    {feature}
+                  </span>
                 </div>
               ))}
             </div>
 
-            <button
-              disabled
-              className="mt-8 w-full cursor-not-allowed rounded-lg border bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-500"
-            >
-              Current Plan
-            </button>
+            {!isPremium && (
+              <button
+                disabled
+                className="mt-8 w-full cursor-not-allowed rounded-lg border bg-gray-100 px-4 py-3 text-sm font-semibold text-gray-500"
+              >
+                Current Plan
+              </button>
+            )}
           </div>
 
           {/* Premium Plan */}
@@ -77,6 +133,7 @@ export default function VendorSubscriptionPage() {
 
             <div className="flex items-center gap-2">
               <Sparkles className="text-orange-500" size={22} />
+
               <h2 className="text-xl font-bold text-gray-900">
                 Premium Plan
               </h2>
@@ -101,27 +158,25 @@ export default function VendorSubscriptionPage() {
               ].map((feature) => (
                 <div key={feature} className="flex items-center gap-3">
                   <Check className="text-green-600" size={18} />
-                  <span className="text-sm text-gray-600">{feature}</span>
+
+                  <span className="text-sm text-gray-600">
+                    {feature}
+                  </span>
                 </div>
               ))}
             </div>
 
             <button
-              onClick={() =>
-                setMessage(
-                  "Stripe Checkout will be connected in the payment integration step."
-                )
-              }
-              className="mt-8 w-full rounded-lg bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
+              onClick={handleUpgrade}
+              disabled={loading || isPremium}
+              className="mt-8 w-full rounded-lg bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Upgrade to Premium
+              {isPremium
+                ? "Current Plan"
+                : loading
+                  ? "Redirecting to Stripe..."
+                  : "Upgrade to Premium"}
             </button>
-
-            {message && (
-              <p className="mt-3 text-center text-sm text-orange-700">
-                {message}
-              </p>
-            )}
           </div>
         </div>
       </div>
