@@ -1,96 +1,104 @@
 "use client";
 
-import { useState } from "react";
-import  DashboardShell  from "@/components/dashboard/dashboard-shell";
-import { Search, ShieldCheck, ShieldBan } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import DashboardShell from "@/components/dashboard/dashboard-shell";
+import { Search, ShieldCheck, ShieldBan, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
+import type { AdminUser, Pagination } from "@/lib/types";
 
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  role: "Customer" | "Vendor";
-  isBlocked: boolean;
+const ROLE_LABEL: Record<string, string> = {
+  admin: "Admin",
+  vendor: "Vendor",
+  customer: "Customer",
 };
 
-const initialUsers: User[] = [
-  {
-    id: 1,
-    name: "John Customer",
-    email: "john@example.com",
-    role: "Customer",
-    isBlocked: false,
-  },
-  {
-    id: 2,
-    name: "Pizza Palace",
-    email: "pizza@example.com",
-    role: "Vendor",
-    isBlocked: false,
-  },
-  {
-    id: 3,
-    name: "Sarah Ahmed",
-    email: "sarah@example.com",
-    role: "Customer",
-    isBlocked: true,
-  },
-  {
-    id: 4,
-    name: "Italian Pizza House",
-    email: "italian@example.com",
-    role: "Vendor",
-    isBlocked: false,
-  },
-];
-
 export default function ManageUsersPage() {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  const toggleBlock = (id: number) => {
-    const selectedUser = users.find((user) => user.id === id);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedSearch(search), 400);
+    return () => window.clearTimeout(t);
+  }, [search]);
 
-    if (!selectedUser) return;
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, roleFilter]);
 
-    setUsers((previousUsers) =>
-      previousUsers.map((user) =>
-        user.id === id
-          ? { ...user, isBlocked: !user.isBlocked }
-          : user
-      )
-    );
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.get<{
+        users: AdminUser[];
+        pagination: Pagination;
+      }>("/api/admin/users", {
+        search: debouncedSearch || undefined,
+        role: roleFilter === "All" ? undefined : roleFilter.toLowerCase(),
+        page,
+        limit: 10,
+      });
+      setUsers(data.users ?? []);
+      setPagination(data.pagination ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load users.");
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedSearch, roleFilter, page]);
 
-    toast.success(
-      selectedUser.isBlocked
-        ? "User unblocked successfully!"
-        : "User blocked successfully!"
-    );
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const toggleBlock = async (user: AdminUser) => {
+    setBusyId(user.id);
+    try {
+      await api.patch(`/api/admin/users/${user.id}/block`, {
+        isBlocked: !user.isBlocked,
+      });
+      toast.success(
+        user.isBlocked ? "User unblocked successfully!" : "User blocked successfully!"
+      );
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id ? { ...u, isBlocked: !user.isBlocked } : u
+        )
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not update this user."
+      );
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase());
-
-    const matchesRole =
-      roleFilter === "All" || user.role === roleFilter;
-
-    return matchesSearch && matchesRole;
-  });
+  const totalPages = pagination?.totalPages ?? 1;
 
   return (
     <DashboardShell role="admin">
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Manage Users
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Manage Users</h1>
           <p className="mt-2 text-gray-500">
             View, search, and manage platform users.
           </p>
         </div>
+
+        {error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm md:flex-row">
           <div className="relative flex-1">
@@ -110,11 +118,13 @@ export default function ManageUsersPage() {
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
+            aria-label="Filter by role"
             className="rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-orange-500"
           >
             <option value="All">All Roles</option>
             <option value="Customer">Customer</option>
             <option value="Vendor">Vendor</option>
+            <option value="Admin">Admin</option>
           </select>
         </div>
 
@@ -130,55 +140,79 @@ export default function ManageUsersPage() {
             </thead>
 
             <tbody className="divide-y divide-gray-100">
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-6 py-4">
-                    <p className="font-semibold text-gray-900">
-                      {user.name}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {user.email}
-                    </p>
-                  </td>
+              {!loading &&
+                users.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4">
+                      <p className="font-semibold text-gray-900">
+                        {user.name}
+                      </p>
+                      <p className="text-sm text-gray-500">{user.email}</p>
+                    </td>
 
-                  <td className="px-6 py-4 text-sm text-gray-700">
-                    {user.role}
-                  </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {ROLE_LABEL[user.role] ?? user.role}
+                      {user.businessName && (
+                        <span className="block text-xs text-gray-400">
+                          {user.businessName}
+                        </span>
+                      )}
+                    </td>
 
-                  <td className="px-6 py-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        user.isBlocked
-                          ? "bg-red-100 text-red-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {user.isBlocked ? "Blocked" : "Active"}
+                    <td className="px-6 py-4">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          user.isBlocked
+                            ? "bg-red-100 text-red-700"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {user.isBlocked ? "Blocked" : "Active"}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => toggleBlock(user)}
+                        disabled={busyId === user.id || user.role === "admin"}
+                        title={
+                          user.role === "admin"
+                            ? "Admin accounts cannot be blocked"
+                            : undefined
+                        }
+                        className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+                          user.isBlocked
+                            ? "bg-green-50 text-green-700 hover:bg-green-100"
+                            : "bg-red-50 text-red-600 hover:bg-red-100"
+                        }`}
+                      >
+                        {user.isBlocked ? (
+                          <ShieldCheck size={16} />
+                        ) : (
+                          <ShieldBan size={16} />
+                        )}
+
+                        {user.isBlocked ? "Unblock" : "Block"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+              {loading && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-10 text-center">
+                    <span className="inline-flex items-center gap-3 text-gray-500">
+                      <Loader2
+                        size={20}
+                        className="animate-spin text-orange-500"
+                      />
+                      Loading users...
                     </span>
                   </td>
-
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => toggleBlock(user.id)}
-                      className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${
-                        user.isBlocked
-                          ? "bg-green-50 text-green-700 hover:bg-green-100"
-                          : "bg-red-50 text-red-600 hover:bg-red-100"
-                      }`}
-                    >
-                      {user.isBlocked ? (
-                        <ShieldCheck size={16} />
-                      ) : (
-                        <ShieldBan size={16} />
-                      )}
-
-                      {user.isBlocked ? "Unblock" : "Block"}
-                    </button>
-                  </td>
                 </tr>
-              ))}
+              )}
 
-              {filteredUsers.length === 0 && (
+              {!loading && users.length === 0 && (
                 <tr>
                   <td
                     colSpan={4}
@@ -191,6 +225,28 @@ export default function ManageUsersPage() {
             </tbody>
           </table>
         </div>
+
+        {!loading && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-orange-500 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-500">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-orange-500 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </DashboardShell>
   );

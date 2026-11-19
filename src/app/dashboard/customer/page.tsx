@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import SimpleBarChart from "@/components/dashboard/simple-bar-chart";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -7,36 +8,61 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Loader2,
 } from "lucide-react";
+import { api } from "@/lib/api";
+import type { CustomerOverview } from "@/lib/types";
 
-const stats = [
+const definitions = [
   {
     title: "Total Orders",
-    value: "12",
+    key: "total" as const,
     icon: ShoppingBag,
     color: "bg-orange-100 text-orange-600",
   },
   {
     title: "Pending Orders",
-    value: "3",
+    key: "pending" as const,
     icon: Clock,
     color: "bg-yellow-100 text-yellow-600",
   },
   {
     title: "Accepted Orders",
-    value: "7",
+    key: "accepted" as const,
     icon: CheckCircle,
     color: "bg-green-100 text-green-600",
   },
   {
     title: "Rejected Orders",
-    value: "2",
+    key: "rejected" as const,
     icon: XCircle,
     color: "bg-red-100 text-red-600",
   },
 ];
 
 export default function CustomerDashboardPage() {
+  const [data, setData] = useState<CustomerOverview | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<CustomerOverview>("/api/orders/overview");
+        if (!cancelled) setData(res);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Could not load overview."
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <DashboardShell role="customer">
       <div className="space-y-6">
@@ -52,8 +78,21 @@ export default function CustomerDashboardPage() {
           </p>
         </div>
 
+        {error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {!data && !error && (
+          <div className="flex items-center gap-3 text-gray-500">
+            <Loader2 size={20} className="animate-spin text-orange-500" />
+            <span className="text-sm">Loading your overview...</span>
+          </div>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {stats.map((stat) => {
+          {definitions.map((stat) => {
             const Icon = stat.icon;
 
             return (
@@ -72,21 +111,24 @@ export default function CustomerDashboardPage() {
                 </div>
 
                 <h2 className="mt-4 text-3xl font-bold text-gray-900">
-                  {stat.value}
+                  {data ? data[stat.key] : "—"}
                 </h2>
               </div>
             );
           })}
         </div>
-        <SimpleBarChart
-  title="Orders by Status"
-  data={[
-    { label: "Pending", value: 3 },
-    { label: "Accepted", value: 7 },
-    { label: "Rejected", value: 2 },
-    { label: "Cancelled", value: 0 },
-  ]}
-/>
+
+        {data && (
+          <SimpleBarChart
+            title="Orders by Status"
+            data={[
+              { label: "Pending", value: data.pending },
+              { label: "Accepted", value: data.accepted },
+              { label: "Rejected", value: data.rejected },
+              { label: "Cancelled", value: data.cancelled },
+            ]}
+          />
+        )}
 
         <div className="rounded-xl border bg-white p-6">
           <h2 className="text-lg font-bold text-gray-900">
