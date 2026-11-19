@@ -1,45 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { Check, Crown, Sparkles } from "lucide-react";
+import { Check, Crown, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useSession } from "@/lib/auth-client";
+import { api } from "@/lib/api";
+import type { SubscriptionInfo } from "@/lib/types";
 
 export default function VendorSubscriptionPage() {
-  const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [sub, setSub] = useState<SubscriptionInfo | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const isPremium = session?.user.subscriptionPlan === "premium";
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.get<SubscriptionInfo>("/api/subscriptions/me");
+        if (!cancelled) setSub(data);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Could not load your plan."
+          );
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const isPremium = sub?.plan === "premium";
 
   const handleUpgrade = async () => {
     setLoading(true);
 
     try {
-      // Backend authenticated session থেকে user identify করবে।
-      // Client থেকে vendorId পাঠানো হবে না।
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/subscriptions/checkout`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
+      // The vendor is identified from the verified JWT on the server.
+      // No vendor id is sent from the client.
+      const data = await api.post<{ url: string }>(
+        "/api/subscriptions/checkout"
       );
 
-      const data = await res.json();
-
-      if (!res.ok || !data.url) {
-        throw new Error(data.message ?? "Could not start checkout.");
-      }
+      if (!data.url) throw new Error("Could not start checkout.");
 
       window.location.href = data.url;
     } catch (err) {
       toast.error(
-        err instanceof Error
-          ? err.message
-          : "Could not start checkout."
+        err instanceof Error ? err.message : "Could not start checkout."
       );
-
       setLoading(false);
     }
   };
@@ -67,15 +77,28 @@ export default function VendorSubscriptionPage() {
             <Crown className="text-orange-600" size={22} />
 
             <h2 className="font-bold text-gray-900">
-              Current Plan: {isPremium ? "Premium" : "Free"}
+              Current Plan:{" "}
+              {!sub && !error
+                ? "Loading..."
+                : isPremium
+                  ? "Premium"
+                  : "Free"}
             </h2>
           </div>
+
+          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
           <p className="mt-2 text-sm text-gray-600">
             {isPremium
               ? "You are currently using the Premium plan. Enjoy your premium benefits."
               : "You are currently using the Free plan. Upgrade to Premium to publish unlimited active menu items."}
           </p>
+
+          {sub && !isPremium && (
+            <p className="mt-1 text-sm text-gray-500">
+              Active items: {sub.activeItems} / {sub.activeItemLimit ?? 3}
+            </p>
+          )}
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -168,14 +191,22 @@ export default function VendorSubscriptionPage() {
 
             <button
               onClick={handleUpgrade}
-              disabled={loading || isPremium}
-              className="mt-8 w-full rounded-lg bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={loading || isPremium || !sub}
+              className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isPremium
-                ? "Current Plan"
-                : loading
-                  ? "Redirecting to Stripe..."
-                  : "Upgrade to Premium"}
+              {!sub ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Loading...
+                </>
+              ) : isPremium ? (
+                "Current Plan"
+              ) : loading ? (
+                "Redirecting to Stripe..."
+              ) : (
+                <>
+                  <Sparkles size={16} /> Upgrade to Premium
+                </>
+              )}
             </button>
           </div>
         </div>

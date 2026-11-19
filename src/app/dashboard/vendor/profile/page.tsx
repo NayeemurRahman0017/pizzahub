@@ -5,7 +5,8 @@ import Image from "next/image";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { Save, UserRound } from "lucide-react";
 import { toast } from "sonner";
-import { authClient, useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 
 type VendorProfileFormProps = {
   initialName: string;
@@ -29,20 +30,19 @@ function VendorProfileForm({
     setSaving(true);
 
     try {
-      const { error } = await authClient.updateUser({
-        name,
-        image: image || undefined,
-        businessName,
+      // Whitelisted server-side: role, isBlocked and subscriptionPlan
+      // can never be changed through this endpoint.
+      await api.patch("/api/profile/me", {
+        name: name.trim(),
+        businessName: businessName.trim(),
+        image: image.trim(),
       });
 
-      if (error) {
-        toast.error(error.message ?? "Could not update profile.");
-        return;
-      }
-
       toast.success("Profile updated successfully.");
-    } catch {
-      toast.error("Could not update profile.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not update profile."
+      );
     } finally {
       setSaving(false);
     }

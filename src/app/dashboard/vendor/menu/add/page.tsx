@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -10,22 +10,37 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 import { uploadToImgBB } from "@/lib/imgbb";
-import { useSession } from "@/lib/auth-client";
+import { api } from "@/lib/api";
+import type { SubscriptionInfo } from "@/lib/types";
 
 export default function AddMenuItemPage() {
   const router = useRouter();
 
-  // Get logged-in user session
-  const { data: session } = useSession();
-
   // Saving state
   const [saving, setSaving] = useState(false);
 
-  // Free plan item limit
-  const activeCount = 3; // TODO: replace with the vendor's real active item count from the API
+  // Real free-plan usage from the backend (null limit = unlimited/Premium)
+  const [sub, setSub] = useState<SubscriptionInfo | null>(null);
 
-  const limitReached =
-    session?.user.subscriptionPlan !== "premium" && activeCount >= 3;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.get<SubscriptionInfo>("/api/subscriptions/me");
+        if (!cancelled) setSub(data);
+      } catch {
+        // Silently fall back to letting the server enforce the limit.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const isPremium = sub?.plan === "premium";
+  const limit = sub?.activeItemLimit ?? 3;
+  const activeCount = sub?.activeItems ?? 0;
+  const limitReached = !isPremium && sub !== null && activeCount >= limit;
 
   // Form data
   const [formData, setFormData] = useState({
@@ -71,9 +86,13 @@ export default function AddMenuItemPage() {
       // Upload image to ImgBB
       const imageUrl = await uploadToImgBB(image);
 
-      // TODO: POST { ...formData, images: [imageUrl] } to the backend (status defaults to "pending")
-      console.log({
-        ...formData,
+      // Status defaults to "pending" on the server until an admin approves.
+      await api.post("/api/vendor/menu-items", {
+        itemName: formData.itemName.trim(),
+        category: formData.category,
+        description: formData.description.trim(),
+        price: Number(formData.price),
+        location: formData.location.trim(),
         images: [imageUrl],
       });
 
@@ -84,7 +103,7 @@ export default function AddMenuItemPage() {
       router.push("/dashboard/vendor/menu");
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Image upload failed."
+        err instanceof Error ? err.message : "Could not save the item."
       );
     } finally {
       setSaving(false);
@@ -116,7 +135,7 @@ export default function AddMenuItemPage() {
         {/* Free Plan Limit Warning */}
         {limitReached && (
           <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
-            Free plan limit reached (3 active items).{" "}
+            Free plan limit reached ({limit} active items).{" "}
             <Link
               href="/dashboard/vendor/subscription"
               className="font-semibold underline"
