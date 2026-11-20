@@ -23,7 +23,7 @@ export default function ManageUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshKey] = useState(0);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

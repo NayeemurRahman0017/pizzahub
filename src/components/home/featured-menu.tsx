@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MapPin, Utensils, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 import { api } from "@/lib/api";
-import type { MenuItem, Paged } from "@/lib/types";
+import type { MenuItem} from "@/lib/types";
 
 function FeaturedCard({ item, index }: { item: MenuItem; index: number }) {
   return (
