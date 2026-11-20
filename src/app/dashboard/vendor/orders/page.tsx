@@ -36,10 +36,34 @@ export default function VendorOrdersPage() {
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
 
-  // Only pending orders can be decided, and only once (enforced by the API too).
+    const fetchOrders = async () => {
+      try {
+        const data = await api.get<{ orders: Order[] }>("/api/vendor/orders");
+        if (!cancelled) {
+          setOrders(data.orders ?? []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Could not load orders."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchOrders();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const updateStatus = async (id: string, status: "accepted" | "rejected") => {
     setBusyId(id);
     try {
@@ -85,7 +109,6 @@ export default function VendorOrdersPage() {
           </div>
         )}
 
-        {/* Order Statistics */}
         <div className="grid gap-4 sm:grid-cols-4">
           <div className="rounded-xl border bg-white p-5">
             <p className="text-sm text-gray-500">Total Orders</p>
@@ -129,7 +152,6 @@ export default function VendorOrdersPage() {
           </div>
         )}
 
-        {/* Orders List */}
         <div className="space-y-4">
           {!loading &&
             orders.map((order) => (
@@ -155,7 +177,6 @@ export default function VendorOrdersPage() {
                   </span>
                 </div>
 
-                {/* Order Details */}
                 <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
                   <div>
                     <p className="font-semibold text-gray-800">
@@ -200,7 +221,6 @@ export default function VendorOrdersPage() {
                   </div>
                 </div>
 
-                {/* Order Actions */}
                 {order.status === "pending" && (
                   <div className="mt-5 flex flex-wrap gap-3 border-t pt-4">
                     <button

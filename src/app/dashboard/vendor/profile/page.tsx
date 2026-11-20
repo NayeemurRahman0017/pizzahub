@@ -30,8 +30,6 @@ function VendorProfileForm({
     setSaving(true);
 
     try {
-      // Whitelisted server-side: role, isBlocked and subscriptionPlan
-      // can never be changed through this endpoint.
       await api.patch("/api/profile/me", {
         name: name.trim(),
         businessName: businessName.trim(),
@@ -68,7 +66,6 @@ function VendorProfileForm({
         onSubmit={handleSubmit}
         className="space-y-6 rounded-xl border bg-white p-6 shadow-sm"
       >
-        {/* Profile Information */}
         <div className="flex items-center gap-4 border-b pb-6">
           <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-orange-100">
             {image ? (
@@ -96,7 +93,6 @@ function VendorProfileForm({
           </div>
         </div>
 
-        {/* Full Name */}
         <div className="space-y-2">
           <label
             htmlFor="name"
@@ -116,7 +112,6 @@ function VendorProfileForm({
           />
         </div>
 
-        {/* Restaurant Name */}
         <div className="space-y-2">
           <label
             htmlFor="businessName"
@@ -136,7 +131,6 @@ function VendorProfileForm({
           />
         </div>
 
-        {/* Profile Image */}
         <div className="space-y-2">
           <label
             htmlFor="image"
@@ -159,7 +153,6 @@ function VendorProfileForm({
           </p>
         </div>
 
-        {/* Restricted Account Information */}
         <div className="border-t pt-5">
           <p className="text-sm text-gray-500">
             Your account role and subscription plan cannot be changed from
@@ -167,7 +160,6 @@ function VendorProfileForm({
           </p>
         </div>
 
-        {/* Save Button */}
         <button
           type="submit"
           disabled={saving}

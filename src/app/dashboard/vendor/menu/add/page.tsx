@@ -16,10 +16,8 @@ import type { SubscriptionInfo } from "@/lib/types";
 export default function AddMenuItemPage() {
   const router = useRouter();
 
-  // Saving state
   const [saving, setSaving] = useState(false);
 
-  // Real free-plan usage from the backend (null limit = unlimited/Premium)
   const [sub, setSub] = useState<SubscriptionInfo | null>(null);
 
   useEffect(() => {
@@ -29,7 +27,6 @@ export default function AddMenuItemPage() {
         const data = await api.get<SubscriptionInfo>("/api/subscriptions/me");
         if (!cancelled) setSub(data);
       } catch {
-        // Silently fall back to letting the server enforce the limit.
       }
     })();
     return () => {
@@ -42,7 +39,6 @@ export default function AddMenuItemPage() {
   const activeCount = sub?.activeItems ?? 0;
   const limitReached = !isPremium && sub !== null && activeCount >= limit;
 
-  // Form data
   const [formData, setFormData] = useState({
     itemName: "",
     category: "",
@@ -51,10 +47,8 @@ export default function AddMenuItemPage() {
     location: "",
   });
 
-  // Selected image
   const [image, setImage] = useState<File | null>(null);
 
-  // Handle input changes
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -66,7 +60,6 @@ export default function AddMenuItemPage() {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -83,10 +76,8 @@ export default function AddMenuItemPage() {
     setSaving(true);
 
     try {
-      // Upload image to ImgBB
       const imageUrl = await uploadToImgBB(image);
 
-      // Status defaults to "pending" on the server until an admin approves.
       await api.post("/api/vendor/menu-items", {
         itemName: formData.itemName.trim(),
         category: formData.category,
@@ -113,7 +104,6 @@ export default function AddMenuItemPage() {
   return (
     <DashboardShell role="vendor">
       <div className="mx-auto max-w-3xl space-y-6">
-        {/* Page Heading */}
         <div>
           <Link
             href="/dashboard/vendor/menu"
@@ -132,7 +122,6 @@ export default function AddMenuItemPage() {
           </p>
         </div>
 
-        {/* Free Plan Limit Warning */}
         {limitReached && (
           <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
             Free plan limit reached ({limit} active items).{" "}
@@ -145,12 +134,10 @@ export default function AddMenuItemPage() {
           </div>
         )}
 
-        {/* Add Menu Item Form */}
         <form
           onSubmit={handleSubmit}
           className="space-y-6 rounded-2xl border border-orange-100 bg-white p-6 shadow-sm"
         >
-          {/* Item Name */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Item Name
@@ -167,7 +154,6 @@ export default function AddMenuItemPage() {
             />
           </div>
 
-          {/* Category */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Category
@@ -196,7 +182,6 @@ export default function AddMenuItemPage() {
             </select>
           </div>
 
-          {/* Description */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Description
@@ -213,9 +198,7 @@ export default function AddMenuItemPage() {
             />
           </div>
 
-          {/* Price and Location */}
           <div className="grid gap-5 sm:grid-cols-2">
-            {/* Price */}
             <div>
               <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Price (৳)
@@ -233,7 +216,6 @@ export default function AddMenuItemPage() {
               />
             </div>
 
-            {/* Location */}
             <div>
               <label className="mb-2 block text-sm font-semibold text-gray-700">
                 Location
@@ -251,7 +233,6 @@ export default function AddMenuItemPage() {
             </div>
           </div>
 
-          {/* Item Image */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               Item Image
@@ -280,13 +261,11 @@ export default function AddMenuItemPage() {
             </label>
           </div>
 
-          {/* Approval Notice */}
           <div className="rounded-xl bg-yellow-50 p-4 text-sm text-yellow-800">
             New menu items will have Pending status until an admin approves
             them.
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={saving || limitReached}

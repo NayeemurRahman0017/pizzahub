@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
@@ -29,62 +29,102 @@ export default function MyMenuItemsPage() {
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await api.get<{ items: MenuItem[] }>(
-        "/api/vendor/menu-items"
-      );
-      setItems(data.items ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load items.");
-    } finally {
-      setLoading(false);
-    }
+  // Load menu items
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchItems = async () => {
+      try {
+        const data = await api.get<{ items: MenuItem[] }>(
+          "/api/vendor/menu-items"
+        );
+
+        if (!cancelled) {
+          setItems(data.items ?? []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Could not load items."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void fetchItems();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
+  // Delete menu item
   const deleteItem = async (id: string) => {
-    if (!window.confirm("Delete this menu item? This cannot be undone.")) {
+    if (
+      !window.confirm(
+        "Delete this menu item? This cannot be undone."
+      )
+    ) {
       return;
     }
+
     setBusyId(id);
+
     try {
       await api.delete(`/api/vendor/menu-items/${id}`);
+
       toast.success("Menu item deleted.");
-      setItems((current) => current.filter((i) => i.id !== id));
+
+      setItems((current) =>
+        current.filter((item) => item.id !== id)
+      );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not delete item.");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not delete item."
+      );
     } finally {
       setBusyId(null);
     }
   };
 
+  // Toggle availability
   const toggleAvailability = async (item: MenuItem) => {
     const turningOn = item.status === "inactive";
+
     setBusyId(item.id);
+
     try {
       const res = await api.patch<{ status: MenuItemStatus }>(
         `/api/vendor/menu-items/${item.id}/availability`,
         { available: turningOn }
       );
+
       toast.success(
         turningOn
           ? "Item submitted for approval."
           : "Item is now unavailable."
       );
+
       setItems((current) =>
         current.map((i) =>
-          i.id === item.id ? { ...i, status: res.status } : i
+          i.id === item.id
+            ? { ...i, status: res.status }
+            : i
         )
       );
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Could not update availability."
+        err instanceof Error
+          ? err.message
+          : "Could not update availability."
       );
     } finally {
       setBusyId(null);
@@ -94,11 +134,14 @@ export default function MyMenuItemsPage() {
   return (
     <DashboardShell role="vendor">
       <div className="space-y-6">
+
+        {/* Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
               My Menu Items
             </h2>
+
             <p className="mt-1 text-gray-500">
               View and manage your menu items.
             </p>
@@ -113,15 +156,18 @@ export default function MyMenuItemsPage() {
           </Link>
         </div>
 
+        {/* Error Message */}
         {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
             {error}
           </div>
         )}
 
+        {/* Menu Items Table */}
         <div className="overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-187.5 text-left">
+
               <thead className="bg-orange-50 text-sm text-gray-600">
                 <tr>
                   <th className="px-5 py-4">Menu Item</th>
@@ -134,9 +180,12 @@ export default function MyMenuItemsPage() {
               </thead>
 
               <tbody className="divide-y divide-orange-50">
+
                 {!loading &&
                   items.map((item) => (
                     <tr key={item.id} className="text-sm">
+
+                      {/* Item Name & Image */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <Image
@@ -146,20 +195,24 @@ export default function MyMenuItemsPage() {
                             height={52}
                             className="h-12 w-12 rounded-lg object-cover"
                           />
+
                           <span className="font-semibold text-gray-800">
                             {item.itemName}
                           </span>
                         </div>
                       </td>
 
+                      {/* Category */}
                       <td className="px-5 py-4 text-gray-600">
                         {item.category}
                       </td>
 
+                      {/* Price */}
                       <td className="px-5 py-4 font-semibold text-gray-800">
                         ৳{item.price}
                       </td>
 
+                      {/* Status */}
                       <td className="px-5 py-4">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_CLASS[item.status]}`}
@@ -168,6 +221,7 @@ export default function MyMenuItemsPage() {
                         </span>
                       </td>
 
+                      {/* Availability */}
                       <td className="px-5 py-4">
                         <button
                           onClick={() => toggleAvailability(item)}
@@ -190,8 +244,11 @@ export default function MyMenuItemsPage() {
                         </button>
                       </td>
 
+                      {/* Actions */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
+
+                          {/* Edit */}
                           <Link
                             href={`/dashboard/vendor/menu/${item.id}/edit`}
                             title="Edit item"
@@ -199,6 +256,8 @@ export default function MyMenuItemsPage() {
                           >
                             <Pencil size={17} />
                           </Link>
+
+                          {/* Delete */}
                           <button
                             onClick={() => deleteItem(item.id)}
                             disabled={busyId === item.id}
@@ -207,26 +266,37 @@ export default function MyMenuItemsPage() {
                           >
                             <Trash2 size={17} />
                           </button>
+
                         </div>
                       </td>
                     </tr>
                   ))}
+
               </tbody>
             </table>
           </div>
 
+          {/* Loading */}
           {loading && (
             <div className="flex items-center justify-center gap-3 py-12 text-gray-500">
-              <Loader2 size={20} className="animate-spin text-orange-500" />
-              <span className="text-sm">Loading your menu items...</span>
+              <Loader2
+                size={20}
+                className="animate-spin text-orange-500"
+              />
+
+              <span className="text-sm">
+                Loading your menu items...
+              </span>
             </div>
           )}
 
-          {!loading && items.length === 0 && (
+          {/* Empty State */}
+          {!loading && items.length === 0 && !error && (
             <div className="py-12 text-center text-gray-500">
               No menu items yet. Add your first item to get started.
             </div>
           )}
+
         </div>
       </div>
     </DashboardShell>

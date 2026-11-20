@@ -1,5 +1,3 @@
-/** Shapes returned by the PizzaHub Express API (see server `src/utils/helpers.js#serialize`). */
-
 export type MenuItemStatus =
   | "pending"
   | "approved"
@@ -34,7 +32,6 @@ export type MenuItem = {
   vendorId: string;
   createdAt?: string;
   vendor?: VendorSummary;
-  /** true when the vendor is on an active Premium plan (featured placement) */
   isPremiumVendor?: boolean;
 };
 

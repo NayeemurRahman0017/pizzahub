@@ -25,15 +25,13 @@ export default function CustomerOrderDetailsPage() {
   const params = useParams<{ id: string }>();
   const [state, setState] = useState<State>({ kind: "loading" });
 
-  useEffect(() => {
-    const id = params.id;
-    if (!id) return;
-    let cancelled = false;
+  const id = params.id;
+  const invalidId = Boolean(id) && !/^[a-f\d]{24}$/i.test(id);
 
-    if (!/^[a-f\d]{24}$/i.test(id)) {
-      setState({ kind: "error", message: "The requested order could not be found." });
-      return;
-    }
+  useEffect(() => {
+    if (!id || !/^[a-f\d]{24}$/i.test(id)) return;
+
+    let cancelled = false;
 
     (async () => {
       try {
@@ -44,7 +42,9 @@ export default function CustomerOrderDetailsPage() {
         setState({
           kind: "error",
           message:
-            err instanceof Error ? err.message : "The requested order could not be found.",
+            err instanceof Error
+              ? err.message
+              : "The requested order could not be found.",
         });
       }
     })();
@@ -52,7 +52,7 @@ export default function CustomerOrderDetailsPage() {
     return () => {
       cancelled = true;
     };
-  }, [params.id]);
+  }, [id]);
 
   return (
     <DashboardShell role="customer">
@@ -75,17 +75,23 @@ export default function CustomerOrderDetailsPage() {
           </p>
         </div>
 
-        {state.kind === "loading" && (
+        {state.kind === "loading" && !invalidId && (
           <div className="flex items-center gap-3 text-gray-500">
             <Loader2 size={20} className="animate-spin text-orange-500" />
             <span className="text-sm">Loading order...</span>
           </div>
         )}
 
-        {state.kind === "error" && (
+        {(invalidId || state.kind === "error") && (
           <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center shadow-sm">
             <h1 className="text-xl font-bold text-gray-900">Order Not Found</h1>
-            <p className="mt-2 text-sm text-gray-500">{state.message}</p>
+            <p className="mt-2 text-sm text-gray-500">
+              {invalidId
+                ? "The requested order could not be found."
+                : state.kind === "error"
+                  ? state.message
+                  : ""}
+            </p>
             <Link
               href="/dashboard/customer/orders"
               className="mt-5 inline-block rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600"

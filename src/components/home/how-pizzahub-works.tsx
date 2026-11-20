@@ -25,7 +25,7 @@ const steps = [
 
 export default function HowPizzaHubWorks() {
   return (
-    <section className="bg-[#211916] px-5 py-20 sm:px-8">
+    <section className="bg-[#211916] px-5 mt-6 py-20 sm:px-8">
       <div className="mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

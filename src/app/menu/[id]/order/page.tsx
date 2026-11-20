@@ -42,23 +42,19 @@ export default function OrderPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const id = params.id;
+  const invalidId = Boolean(id) && !/^[a-f\d]{24}$/i.test(id);
+
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    if (!params.id) return;
-    let cancelled = false;
+    if (!id || invalidId) return;
 
-    if (!/^[a-f\d]{24}$/i.test(params.id)) {
-      setMissing(true);
-      setLoading(false);
-      return;
-    }
+    let cancelled = false;
 
     (async () => {
       try {
-        const data = await api.get<{ item: MenuItem }>(
-          `/api/menu/${params.id}`
-        );
+        const data = await api.get<{ item: MenuItem }>(`/api/menu/${id}`);
         if (!cancelled) setItem(data.item);
       } catch (err) {
         if (cancelled) return;
@@ -77,7 +73,7 @@ export default function OrderPage() {
     return () => {
       cancelled = true;
     };
-  }, [params.id]);
+  }, [id, invalidId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -114,7 +110,7 @@ export default function OrderPage() {
     }
   };
 
-  if (isPending || loading) {
+  if (isPending || (loading && !invalidId)) {
     return (
       <main className="grid min-h-[60vh] place-items-center bg-orange-50">
         <div className="flex flex-col items-center gap-3 text-gray-500">
@@ -126,7 +122,7 @@ export default function OrderPage() {
   }
 
   if (loadError) return <Notice text={loadError} />;
-  if (missing || !item) {
+  if (invalidId || missing || !item) {
     return <Notice text="This menu item does not exist or is unavailable." />;
   }
 

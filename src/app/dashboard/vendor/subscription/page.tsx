@@ -37,8 +37,6 @@ export default function VendorSubscriptionPage() {
     setLoading(true);
 
     try {
-      // The vendor is identified from the verified JWT on the server.
-      // No vendor id is sent from the client.
       const data = await api.post<{ url: string }>(
         "/api/subscriptions/checkout"
       );
@@ -71,7 +69,6 @@ export default function VendorSubscriptionPage() {
           </p>
         </div>
 
-        {/* Current Plan */}
         <div className="rounded-xl border border-orange-200 bg-orange-50 p-5">
           <div className="flex items-center gap-2">
             <Crown className="text-orange-600" size={22} />
@@ -102,7 +99,6 @@ export default function VendorSubscriptionPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Free Plan */}
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
             <div>
               <h2 className="text-xl font-bold text-gray-900">
@@ -148,7 +144,6 @@ export default function VendorSubscriptionPage() {
             )}
           </div>
 
-          {/* Premium Plan */}
           <div className="relative rounded-2xl border-2 border-orange-500 bg-white p-6 shadow-sm">
             <div className="absolute -top-3 right-5 rounded-full bg-orange-500 px-4 py-1 text-xs font-bold text-white">
               RECOMMENDED

@@ -54,10 +54,9 @@ export default async function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#211916] text-gray-300">
+    <footer className="bg-[#211916] text-gray-300 mt-6">
       <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
-          {/* Brand Information */}
           <div>
             <Link href="/" className="inline-flex items-center gap-3">
               <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
@@ -74,7 +73,6 @@ export default async function Footer() {
               flavors, and make every meal special with PizzaHub.
             </p>
 
-            {/* Social Links */}
             <div className="mt-6 flex items-center gap-3">
               {social.map((s) => (
                 <a
@@ -103,7 +101,6 @@ export default async function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h3 className="mb-6 text-lg font-bold text-white">
               Quick Links
@@ -128,7 +125,6 @@ export default async function Footer() {
             </ul>
           </div>
 
-          {/* Contact Information */}
           <div>
             <h3 className="mb-6 text-lg font-bold text-white">
               Contact Us
@@ -176,7 +172,6 @@ export default async function Footer() {
             </ul>
           </div>
 
-          {/* PizzaHub Information */}
           <div>
             <h3 className="mb-6 text-lg font-bold text-white">
               PizzaHub
@@ -198,7 +193,6 @@ export default async function Footer() {
         </div>
       </div>
 
-      {/* Copyright */}
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 py-6 text-center sm:flex-row sm:text-left lg:px-8">
           <p className="text-sm text-gray-500">

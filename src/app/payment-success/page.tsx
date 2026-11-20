@@ -18,8 +18,6 @@ function PaymentSuccessContent() {
     let cancelled = false;
 
     (async () => {
-      // Premium is only activated by the Stripe webhook, so this endpoint
-      // simply reports the current plan. A short delay lets the webhook land.
       await new Promise((resolve) => setTimeout(resolve, 1500));
       try {
         const data = await api.get<SubscriptionInfo>("/api/subscriptions/me");

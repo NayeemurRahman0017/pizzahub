@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 
 export default function HeroBanner() {
   return (
-    <section className="relative flex min-h-155 items-center overflow-hidden bg-[#211916]">
+    <section className="relative mt-6 flex min-h-155 items-center overflow-hidden bg-[#211916]">
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{

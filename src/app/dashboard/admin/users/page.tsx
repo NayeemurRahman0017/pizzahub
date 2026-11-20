@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { Search, ShieldCheck, ShieldBan, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -22,52 +22,85 @@ export default function ManageUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+
   useEffect(() => {
-    const t = window.setTimeout(() => setDebouncedSearch(search), 400);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => window.clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => {
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
     setPage(1);
-  }, [debouncedSearch, roleFilter]);
-
-  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    try {
-      const data = await api.get<{
-        users: AdminUser[];
-        pagination: Pagination;
-      }>("/api/admin/users", {
-        search: debouncedSearch || undefined,
-        role: roleFilter === "All" ? undefined : roleFilter.toLowerCase(),
-        page,
-        limit: 10,
-      });
-      setUsers(data.users ?? []);
-      setPagination(data.pagination ?? null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load users.");
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedSearch, roleFilter, page]);
+  };
+
+  const handleRoleChange = (value: string) => {
+    setRoleFilter(value);
+    setPage(1);
+    setLoading(true);
+    setError(null);
+  };
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+
+    const fetchUsers = async () => {
+      try {
+        const data = await api.get<{
+          users: AdminUser[];
+          pagination: Pagination;
+        }>("/api/admin/users", {
+          search: debouncedSearch || undefined,
+          role: roleFilter === "All" ? undefined : roleFilter.toLowerCase(),
+          page,
+          limit: 10,
+        });
+
+        if (cancelled) return;
+
+        setUsers(data.users ?? []);
+        setPagination(data.pagination ?? null);
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+
+        setError(
+          err instanceof Error ? err.message : "Could not load users."
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUsers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearch, roleFilter, page, refreshKey]);
 
   const toggleBlock = async (user: AdminUser) => {
     setBusyId(user.id);
+
     try {
       await api.patch(`/api/admin/users/${user.id}/block`, {
         isBlocked: !user.isBlocked,
       });
+
       toast.success(
-        user.isBlocked ? "User unblocked successfully!" : "User blocked successfully!"
+        user.isBlocked
+          ? "User unblocked successfully!"
+          : "User blocked successfully!"
       );
+
       setUsers((prev) =>
         prev.map((u) =>
           u.id === user.id ? { ...u, isBlocked: !user.isBlocked } : u
@@ -109,7 +142,7 @@ export default function ManageUsersPage() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search by name or email..."
               className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 outline-none focus:border-orange-500"
             />
@@ -117,7 +150,7 @@ export default function ManageUsersPage() {
 
           <select
             value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
+            onChange={(e) => handleRoleChange(e.target.value)}
             aria-label="Filter by role"
             className="rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-orange-500"
           >
@@ -235,9 +268,11 @@ export default function ManageUsersPage() {
             >
               Previous
             </button>
+
             <span className="text-sm text-gray-500">
               Page {page} of {totalPages}
             </span>
+
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}

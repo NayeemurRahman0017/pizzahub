@@ -1,9 +1,9 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import { ArrowLeft, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +20,8 @@ type State =
 export default function EditMenuItemPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const id = params.id;
+  const invalidId = !/^[a-f\d]{24}$/i.test(id);
 
   const [state, setState] = useState<State>({ kind: "loading" });
   const [saving, setSaving] = useState(false);
@@ -35,14 +37,9 @@ export default function EditMenuItemPage() {
   const [image, setImage] = useState<File | null>(null);
 
   useEffect(() => {
-    const id = params.id;
-    if (!id) return;
-    let cancelled = false;
+    if (!id || invalidId) return;
 
-    if (!/^[a-f\d]{24}$/i.test(id)) {
-      setState({ kind: "error", message: "Invalid menu item id." });
-      return;
-    }
+    let cancelled = false;
 
     (async () => {
       try {
@@ -73,7 +70,7 @@ export default function EditMenuItemPage() {
     return () => {
       cancelled = true;
     };
-  }, [params.id]);
+  }, [id, invalidId]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -117,12 +114,19 @@ export default function EditMenuItemPage() {
     }
   };
 
-  if (state.kind === "loading") {
+  if (invalidId) {
     return (
       <DashboardShell role="vendor">
-        <div className="flex items-center gap-3 text-gray-500">
-          <Loader2 size={20} className="animate-spin text-orange-500" />
-          <span className="text-sm">Loading menu item...</span>
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+            Invalid menu item id.
+          </div>
+          <Link
+            href="/dashboard/vendor/menu"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 font-semibold text-gray-700"
+          >
+            <ArrowLeft size={17} /> Back to My Menu Items
+          </Link>
         </div>
       </DashboardShell>
     );
@@ -141,6 +145,17 @@ export default function EditMenuItemPage() {
           >
             <ArrowLeft size={17} /> Back to My Menu Items
           </Link>
+        </div>
+      </DashboardShell>
+    );
+  }
+
+  if (state.kind === "loading") {
+    return (
+      <DashboardShell role="vendor">
+        <div className="flex items-center gap-3 text-gray-500">
+          <Loader2 size={20} className="animate-spin text-orange-500" />
+          <span className="text-sm">Loading menu item...</span>
         </div>
       </DashboardShell>
     );
@@ -268,10 +283,11 @@ export default function EditMenuItemPage() {
             </label>
 
             {currentImage && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={currentImage}
                 alt="Current item"
+                width={112}
+                height={112}
                 className="mb-3 h-28 w-28 rounded-xl object-cover"
               />
             )}

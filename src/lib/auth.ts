@@ -80,7 +80,6 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
-        // Public sign-up can only create vendor or customer accounts.
         before: async (user) => ({
           data: {
             ...user,
@@ -93,7 +92,6 @@ export const auth = betterAuth({
       },
 
       update: {
-        // Prevent users from changing protected fields through profile updates.
         before: async (data) => {
           const {
             role: _role,

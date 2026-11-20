@@ -3,7 +3,6 @@ const BASE_URL =
 const AUTH_URL =
   process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
 
-/** Thrown for every failed backend request. `status` is 0 when the server is unreachable. */
 export class ApiError extends Error {
   status: number;
 
@@ -16,16 +15,12 @@ export class ApiError extends Error {
 
 type CachedToken = { token: string; at: number };
 let cachedToken: CachedToken | null = null;
-const TOKEN_TTL = 10 * 60 * 1000; // tokens live 15m, refresh early
+const TOKEN_TTL = 10 * 60 * 1000;
 
 export function clearTokenCache() {
   cachedToken = null;
 }
 
-/**
- * Better Auth issues the JWT from `GET /api/auth/token`.
- * The cookie is sent along, so this only works for a signed-in user.
- */
 async function getToken(force = false): Promise<string | null> {
   if (!force && cachedToken && Date.now() - cachedToken.at < TOKEN_TTL) {
     return cachedToken.token;
@@ -77,7 +72,6 @@ async function request<T>(
     );
   }
 
-  // Stale token: drop the cache and try once more with a fresh one.
   if (res.status === 401 && !retried) {
     clearTokenCache();
     return request<T>(path, init, true);

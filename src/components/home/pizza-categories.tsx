@@ -32,7 +32,7 @@ const categories = [
 
 export default function PizzaCategories() {
   return (
-    <section className="bg-[#fff0e7] px-5 py-20 sm:px-8">
+    <section className="bg-[#fff0e7] px-5 py-20 mt-6 sm:px-8">
       <div className="mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

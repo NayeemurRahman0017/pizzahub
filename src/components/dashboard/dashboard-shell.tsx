@@ -115,13 +115,11 @@ export default function DashboardShell({
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Get real logged-in user information
   const { data: session } = useSession();
 
   const userName = session?.user.name ?? "";
   const userEmail = session?.user.email ?? "";
 
-  // Logout handler
   const handleLogout = async () => {
     const { error } = await signOut();
 
@@ -139,7 +137,6 @@ export default function DashboardShell({
 
   return (
     <div className="min-h-screen bg-[#fffaf5] md:flex">
-      {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <button
           aria-label="Close sidebar"
@@ -148,13 +145,11 @@ export default function DashboardShell({
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-orange-100 bg-white transition-transform duration-300 md:sticky md:top-0 md:h-screen md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-orange-100 px-6 py-5">
           <Logo />
 
@@ -167,14 +162,12 @@ export default function DashboardShell({
           </button>
         </div>
 
-        {/* Dashboard Role */}
         <div className="px-6 py-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
             {role} Dashboard
           </p>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 space-y-2 overflow-y-auto px-4">
           {links.map((item) => {
             const Icon = item.icon;
@@ -202,7 +195,6 @@ export default function DashboardShell({
           })}
         </nav>
 
-        {/* User Profile & Logout */}
         <div className="border-t border-orange-100 p-4">
           <div className="flex items-center gap-3 rounded-xl bg-orange-50 p-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-200 text-orange-700">
@@ -220,7 +212,6 @@ export default function DashboardShell({
             </div>
           </div>
 
-          {/* Logout Button */}
           <button
             type="button"
             onClick={handleLogout}
@@ -232,9 +223,7 @@ export default function DashboardShell({
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="min-w-0 flex-1">
-        {/* Top Header */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-orange-100 bg-white/95 px-4 backdrop-blur md:px-8">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -249,8 +238,7 @@ export default function DashboardShell({
           </h1>
         </header>
 
-        {/* Page Content */}
-        <main className="p-4 md:p-8">{children}</main>
+        <main className="container mx-auto p-4 md:p-8">{children}</main>
       </div>
     </div>
   );

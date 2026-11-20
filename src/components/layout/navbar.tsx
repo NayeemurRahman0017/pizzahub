@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -43,7 +44,6 @@ export default function Navbar() {
 
     document.documentElement.classList.toggle("dark", dark);
 
-    // Synchronize React state after the component mounts
     const timer = window.setTimeout(() => {
       setIsDark(dark);
     }, 0);
@@ -51,7 +51,6 @@ export default function Navbar() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  // Close the profile dropdown when clicking outside.
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
       if (
@@ -100,10 +99,11 @@ export default function Navbar() {
 
       <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-orange-100 text-orange-600">
         {user?.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={user.image}
             alt={user.name ?? "Profile"}
+            width={36}
+            height={36}
             className="h-full w-full object-cover"
           />
         ) : (
@@ -155,7 +155,6 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-orange-100 bg-white/95 backdrop-blur">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
-        {/* Logo */}
         <Link
           href="/"
           onClick={closeMenu}
@@ -170,7 +169,6 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden items-center gap-8 font-medium text-gray-600 md:flex">
           <Link
             href="/"
@@ -187,7 +185,6 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Desktop Auth Navigation */}
         <div className="hidden items-center gap-3 md:flex">
           <button
             type="button"
@@ -251,7 +248,6 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           type="button"
           onClick={() => setIsMenuOpen((previous) => !previous)}
@@ -266,7 +262,6 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile Navigation */}
       {isMenuOpen && (
         <div
           id="mobile-navigation"
@@ -307,10 +302,11 @@ export default function Navbar() {
                 <div className="flex items-center gap-3 rounded-lg bg-orange-50 px-4 py-3">
                   <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-orange-200 text-orange-700">
                     {user?.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={user.image}
                         alt={user.name ?? "Profile"}
+                        width={40}
+                        height={40}
                         className="h-full w-full object-cover"
                       />
                     ) : (

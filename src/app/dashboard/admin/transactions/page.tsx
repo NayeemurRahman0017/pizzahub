@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
 import {
   CreditCard,
@@ -19,18 +19,21 @@ const badge = (status: string) => {
   if (status === "paid" || status === "succeeded") {
     return "bg-green-100 text-green-700";
   }
+
   if (status === "pending" || status === "open") {
     return "bg-yellow-100 text-yellow-700";
   }
+
   return "bg-red-100 text-red-700";
 };
 
-/** Stripe amounts arrive in the smallest currency unit (e.g. cents). */
 const formatAmount = (amount: number, currency: string) => {
   const zeroDecimal = ["jpy", "krw", "vnd"].includes(
     (currency ?? "").toLowerCase()
   );
+
   const value = zeroDecimal ? amount : amount / 100;
+
   return `${value.toLocaleString(undefined, {
     minimumFractionDigits: zeroDecimal ? 0 : 2,
     maximumFractionDigits: 2,
@@ -44,37 +47,55 @@ export default function AdminTransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await api.get<{
-        transactions: Transaction[];
-        pagination: Pagination;
-      }>("/api/admin/transactions", { page, limit: 10 });
-      setTransactions(data.transactions ?? []);
-      setPagination(data.pagination ?? null);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not load transactions."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+
+    const fetchTransactions = async () => {
+      try {
+        const data = await api.get<{
+          transactions: Transaction[];
+          pagination: Pagination;
+        }>("/api/admin/transactions", { page, limit: 10 });
+
+        if (cancelled) return;
+
+        setTransactions(data.transactions ?? []);
+        setPagination(data.pagination ?? null);
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+
+        setError(
+          err instanceof Error ? err.message : "Could not load transactions."
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchTransactions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [page]);
 
   const successful = transactions.filter(
     (t) => t.status === "paid" || t.status === "succeeded"
   ).length;
+
   const pending = transactions.filter(
     (t) => t.status === "pending" || t.status === "open"
   ).length;
+
   const failed = transactions.filter(
-    (t) => t.status !== "paid" && t.status !== "succeeded" && t.status !== "pending" && t.status !== "open"
+    (t) =>
+      t.status !== "paid" &&
+      t.status !== "succeeded" &&
+      t.status !== "pending" &&
+      t.status !== "open"
   ).length;
 
   const totalPages = pagination?.totalPages ?? 1;
@@ -166,12 +187,17 @@ export default function AdminTransactionsPage() {
                     </td>
 
                     <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                      {formatAmount(transaction.amount, transaction.currency)}
+                      {formatAmount(
+                        transaction.amount,
+                        transaction.currency
+                      )}
                     </td>
 
                     <td className="px-6 py-4">
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${badge(transaction.status)}`}
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${badge(
+                          transaction.status
+                        )}`}
                       >
                         {label(transaction.status)}
                       </span>
@@ -220,9 +246,11 @@ export default function AdminTransactionsPage() {
             >
               Previous
             </button>
+
             <span className="text-sm text-gray-500">
               Page {page} of {totalPages}
             </span>
+
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}

@@ -34,21 +34,17 @@ function MenuContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Debounced search so we do not fire a request per keystroke.
   const [debouncedSearch, setDebouncedSearch] = useState("");
+
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedSearch(search), 400);
     return () => window.clearTimeout(t);
   }, [search]);
 
-  // Reset to page 1 whenever the filters change.
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, category, location, sort]);
-
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
       const data = await api.get<{ items: MenuItem[]; pagination: Pagination }>(
         "/api/menu",
@@ -61,6 +57,7 @@ function MenuContent() {
           limit: 12,
         }
       );
+
       setItems(data.items ?? []);
       setPagination(data.pagination ?? null);
     } catch (err) {
@@ -75,11 +72,49 @@ function MenuContent() {
   }, [debouncedSearch, category, location, sort, page]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
 
-  // Location options: the seeded list plus whatever the API returns,
-  // so vendors using a different area stay filterable.
+    const fetchItems = async () => {
+      try {
+        const data = await api.get<{ items: MenuItem[]; pagination: Pagination }>(
+          "/api/menu",
+          {
+            search: debouncedSearch || undefined,
+            category: category === "All" ? undefined : category,
+            location: location === "All" ? undefined : location,
+            sort,
+            page,
+            limit: 12,
+          }
+        );
+
+        if (!cancelled) {
+          setItems(data.items ?? []);
+          setPagination(data.pagination ?? null);
+          setError(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setItems([]);
+          setPagination(null);
+          setError(
+            err instanceof Error ? err.message : "Could not load the menu."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchItems();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearch, category, location, sort, page]);
+
   const locationOptions = Array.from(
     new Set([...LOCATIONS, ...items.map((i) => i.location).filter(Boolean)])
   );
@@ -109,7 +144,10 @@ function MenuContent() {
               />
               <input
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
                 placeholder="Search by name or vendor..."
                 aria-label="Search menu items"
                 className="w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-11 pr-4 outline-none focus:border-primary"
@@ -118,7 +156,10 @@ function MenuContent() {
 
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setPage(1);
+              }}
               aria-label="Filter by category"
               className={select}
             >
@@ -132,7 +173,10 @@ function MenuContent() {
 
             <select
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                setPage(1);
+              }}
               aria-label="Filter by location"
               className={select}
             >
@@ -146,7 +190,10 @@ function MenuContent() {
 
             <select
               value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
+              onChange={(e) => {
+                setSort(e.target.value as SortKey);
+                setPage(1);
+              }}
               aria-label="Sort menu items"
               className={select}
             >

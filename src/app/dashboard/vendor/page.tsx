@@ -104,7 +104,6 @@ export default function VendorDashboard() {
           </div>
         )}
 
-        {/* Statistics Cards */}
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((item) => {
             const Icon = item.icon;
@@ -131,7 +130,6 @@ export default function VendorDashboard() {
           })}
         </div>
 
-        {/* Subscription Card */}
         <div className="flex flex-col justify-between gap-4 rounded-2xl bg-linear-to-r from-orange-500 to-red-500 p-6 text-white sm:flex-row sm:items-center">
           <div>
             <div className="flex items-center gap-2">
@@ -164,7 +162,6 @@ export default function VendorDashboard() {
           </div>
         </div>
 
-        {/* Weekly Orders Chart */}
         <div className="rounded-2xl border border-orange-100 bg-white p-6 shadow-sm">
           <h3 className="text-lg font-bold text-gray-800">Weekly Orders</h3>
           <p className="mt-1 text-sm text-gray-500">

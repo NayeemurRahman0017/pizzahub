@@ -100,7 +100,7 @@ export default function FeaturedMenu() {
   }, []);
 
   return (
-    <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+    <section className="mx-auto max-w-7xl px-5 py-20 mt-6 sm:px-8">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}

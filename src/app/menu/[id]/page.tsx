@@ -18,18 +18,14 @@ export default function MenuDetailsPage() {
   const { id: resolvedId } = useParams<{ id: string }>();
   const [state, setState] = useState<State>({ kind: "loading" });
 
+  const invalidId = Boolean(resolvedId) && !/^[a-f\d]{24}$/i.test(resolvedId);
+
   useEffect(() => {
-    if (!resolvedId) return;
+    if (!resolvedId || invalidId) return;
+
     let cancelled = false;
 
-    // Invalid ObjectId shapes never reach the API as a valid request.
-    if (!/^[a-f\d]{24}$/i.test(resolvedId)) {
-      setState({ kind: "missing" });
-      return;
-    }
-
     (async () => {
-      setState({ kind: "loading" });
       try {
         const data = await api.get<{ item: MenuItem }>(
           `/api/menu/${resolvedId}`
@@ -55,7 +51,30 @@ export default function MenuDetailsPage() {
     return () => {
       cancelled = true;
     };
-  }, [resolvedId]);
+  }, [resolvedId, invalidId]);
+
+  if (invalidId) {
+    return (
+      <main className="min-h-screen bg-orange-50 px-5 py-12">
+        <div className="mx-auto max-w-4xl rounded-2xl bg-white p-10 text-center shadow-sm">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Menu Item Not Found
+          </h1>
+          <p className="mt-2 text-gray-500">
+            The menu item you are looking for does not exist or is no longer
+            available.
+          </p>
+          <Link
+            href="/menu"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-white"
+          >
+            <ArrowLeft size={18} />
+            Back to Menu
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   if (state.kind === "loading") {
     return (
@@ -132,7 +151,6 @@ export default function MenuDetailsPage() {
 
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
           <div className="grid md:grid-cols-2">
-            {/* Images */}
             <div className="grid min-h-80 grid-cols-3 gap-2 bg-orange-50 p-2 md:min-h-120 md:grid-cols-1">
               {images.slice(0, 3).map((image, index) => (
                 <div
@@ -155,7 +173,6 @@ export default function MenuDetailsPage() {
               ))}
             </div>
 
-            {/* Details */}
             <div className="flex flex-col justify-center p-8 md:p-12">
               <span className="w-fit rounded-full bg-orange-100 px-4 py-2 text-sm font-semibold text-orange-700">
                 {item.category}
