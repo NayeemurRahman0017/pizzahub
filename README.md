@@ -1,61 +1,97 @@
-## PizzaHub
+# 🍕 PizzaHub – Online Pizza Marketplace
 
-PizzaHub is a frontend-only Pizza marketplace UI built with Next.js App Router,
-TypeScript, Tailwind CSS, ShadCN-style components, Motion, and Lucide icons.
+PizzaHub is a modern and user-friendly pizza marketplace designed to provide customers with a smooth and enjoyable browsing experience. Users can explore pizza menus, search for their favorite items, apply filters, and discover delicious food through a clean and responsive interface.
 
-### Challenge Implementation
+## 🌐 Live Website
 
-- **Advanced search and sorting:** the Browse Menu supports text search, category
-  and location filters, plus ascending and descending price sorting. Filters are
-  applied with URL-independent client state and can later map directly to API
-  query parameters such as `search`, `category`, `location`, `sort=priceAsc`,
-  and `sort=priceDesc`.
-- **JWT/API middleware:** the frontend defines role-oriented route layouts for
-  customer, vendor, and admin dashboards. For the full implementation, Express
-  middleware will verify the Bearer JWT signature and expiration, extract the
-  user role, reject missing/invalid tokens with `401`, reject wrong-role access
-  with `403`, and verify resource ownership before menu, order, or profile
-  mutations.
-- **Backend and authentication:** Better Auth, MongoDB, Stripe webhooks, JWT
-  verification, and ImgBB uploads are intentionally not implemented in this
-  frontend-only assignment version.
+**Live Site:** https://pizzahub-y5rh.vercel.app
 
-### Optional Features
+## ✨ Key Features
 
-- Dark/light mode toggle
-- Customer order status timeline
+- **Modern & Responsive Design:** A clean, attractive, and fully responsive interface that works across desktop, tablet, and mobile devices.
+- **Browse Pizza Menu:** Explore available pizza items through an organized and user-friendly menu.
+- **Advanced Search:** Find your favorite pizza items quickly using the search functionality.
+- **Category Filtering:** Filter menu items based on different food categories.
+- **Location Filtering:** Browse menu items using location-based filtering options.
+- **Price Sorting:** Sort menu items by price in ascending or descending order.
+- **Role-Based Dashboards:** Separate dashboard interfaces for customers, vendors, and administrators.
+- **Dark & Light Mode:** Switch between dark and light themes for a comfortable browsing experience.
+- **Order Status Timeline:** Track order progress through an organized status timeline.
+- **Interactive User Interface:** Smooth animations, intuitive navigation, and interactive components for a better user experience.
 
-## Getting Started
+## 🛠️ Technologies Used
 
-First, run the development server:
+### Frontend
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Shadcn UI
+- Lucide React
+- Motion
+
+### Tools & Platforms
+- Git & GitHub
+- Vercel
+
+## 🚀 Getting Started
+
+Follow these steps to run the project locally.
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/NayeemurRahman0017/pizzahub.git
+```
+
+### 2. Navigate to the Project Directory
+
+```bash
+cd pizzahub
+```
+
+### 3. Install Dependencies
+
+```bash
+npm install
+```
+
+### 4. Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 5. Open in Browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Visit:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+http://localhost:3000
+```
 
-## Learn More
+## 📂 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```text
+pizzahub/
+├── public/
+├── src/
+├── .gitignore
+├── components.json
+├── next.config.ts
+├── package.json
+├── tsconfig.json
+└── README.md
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎯 Project Purpose
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+PizzaHub aims to provide a convenient and visually appealing platform for exploring pizza menus. This project focuses on modern frontend development, responsive design, interactive user experiences, and organized dashboard interfaces.
 
-## Deploy on Vercel
+## 👨‍💻 Developer
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Nayeemur Rahman**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+GitHub: https://github.com/NayeemurRahman0017
+
+---
