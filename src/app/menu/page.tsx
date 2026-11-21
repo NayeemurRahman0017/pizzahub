@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, ShoppingBag, Crown } from "lucide-react";
 import { api } from "@/lib/api";
-import { CATEGORIES, LOCATIONS } from "@/lib/menu-data";
+import { CATEGORIES } from "@/lib/menu-data";
 import type { MenuItem, Pagination } from "@/lib/types";
 
 const select =
@@ -116,7 +116,7 @@ function MenuContent() {
   }, [debouncedSearch, category, location, sort, page]);
 
   const locationOptions = Array.from(
-    new Set([...LOCATIONS, ...items.map((i) => i.location).filter(Boolean)])
+    new Set(items.map((i) => i.location).filter(Boolean))
   );
 
   const totalPages = pagination?.totalPages ?? 1;

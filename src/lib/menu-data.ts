@@ -7,5 +7,3 @@ export const CATEGORIES = [
   "Beverages & Desserts",
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
-
-export const LOCATIONS = ["Dhanmondi", "Gulshan", "Mirpur", "Uttara", "Banani"];

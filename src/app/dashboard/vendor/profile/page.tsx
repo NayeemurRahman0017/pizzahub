@@ -12,16 +12,19 @@ type VendorProfileFormProps = {
   initialName: string;
   initialBusinessName: string;
   initialImage: string;
+  initialLocation: string;
 };
 
 function VendorProfileForm({
   initialName,
   initialBusinessName,
   initialImage,
+  initialLocation,
 }: VendorProfileFormProps) {
   const [name, setName] = useState(initialName);
   const [businessName, setBusinessName] = useState(initialBusinessName);
   const [image, setImage] = useState(initialImage);
+  const [location, setLocation] = useState(initialLocation);
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -34,6 +37,7 @@ function VendorProfileForm({
         name: name.trim(),
         businessName: businessName.trim(),
         image: image.trim(),
+        location: location.trim(),
       });
 
       toast.success("Profile updated successfully.");
@@ -133,6 +137,29 @@ function VendorProfileForm({
 
         <div className="space-y-2">
           <label
+            htmlFor="location"
+            className="text-sm font-medium text-gray-700"
+          >
+            Restaurant Location
+          </label>
+
+          <input
+            id="location"
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full rounded-lg border px-4 py-3 text-sm outline-none focus:border-orange-500"
+            placeholder="e.g. Banani, Dhaka / Brooklyn, New York"
+          />
+
+          <p className="text-xs text-gray-500">
+            Your restaurant&apos;s area or city — any place in the world. Used
+            to automatically fill the location when you add menu items.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <label
             htmlFor="image"
             className="text-sm font-medium text-gray-700"
           >
@@ -188,6 +215,7 @@ export default function VendorProfilePage() {
           initialName={session.user.name ?? ""}
           initialBusinessName={session.user.businessName ?? ""}
           initialImage={session.user.image ?? ""}
+          initialLocation={session.user.location ?? ""}
         />
       )}
     </DashboardShell>

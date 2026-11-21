@@ -49,6 +49,28 @@ export default function AddMenuItemPage() {
 
   const [image, setImage] = useState<File | null>(null);
 
+  // Pre-fill the item location from the vendor's saved restaurant location.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.get<{ user: { location?: string | null } }>(
+          "/api/profile/me"
+        );
+        const saved = data?.user?.location?.trim();
+        if (!cancelled && saved) {
+          setFormData((prev) =>
+            prev.location ? prev : { ...prev, location: saved }
+          );
+        }
+      } catch {
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -230,6 +252,11 @@ export default function AddMenuItemPage() {
                 required
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-orange-500"
               />
+
+              <p className="mt-1 text-xs text-gray-500">
+                Auto-filled from your restaurant location (Profile Settings) —
+                edit it if this item is served elsewhere.
+              </p>
             </div>
           </div>
 
